@@ -1,10 +1,24 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { analyseCar } from "./api";
+import {
+  createDemoCompareCars,
+  createSavedCarAnalysis,
+  getBestOverallChoice,
+  getScoreCategoryOrder,
+  getWinningCostIds,
+  getWinningScoreIds
+} from "./compare";
+import { CompareTray } from "./components/CompareTray";
+import { CostBreakdownTable } from "./components/CostBreakdownTable";
+import { RadarScoreChart } from "./components/RadarScoreChart";
 import type {
   AnalyseCarRequest,
   AnalyseCarResponse,
+  AnalysisCategory,
   IntendedUse,
-  RiskSeverity
+  RiskSeverity,
+  SavedCarAnalysis,
+  ThreeYearCostBreakdown
 } from "./types";
 
 const intendedUseOptions: IntendedUse[] = [
@@ -31,6 +45,7 @@ const demoListing: AnalyseCarRequest = {
 };
 
 const minimumLoadingMs = 2600;
+const compareLimit = 3;
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-AU", {
@@ -76,9 +91,13 @@ export default function App() {
     location: ""
   });
   const [result, setResult] = useState<AnalyseCarResponse | null>(null);
+  const [lastAnalysedRequest, setLastAnalysedRequest] =
+    useState<AnalyseCarRequest | null>(null);
+  const [savedCars, setSavedCars] = useState<SavedCarAnalysis[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStepIndex, setLoadingStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [compareMessage, setCompareMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading) {
@@ -102,6 +121,37 @@ export default function App() {
     };
   }, [result?.buyScore]);
 
+  const winningScoreIdsByCategory = useMemo(() => {
+    return getScoreCategoryOrder().reduce(
+      (accumulator, category) => {
+        accumulator[category] = getWinningScoreIds(savedCars, category);
+        return accumulator;
+      },
+      {} as Record<AnalysisCategory, Set<string>>
+    );
+  }, [savedCars]);
+
+  const winningCostIdsByKey = useMemo(() => {
+    const costKeys: Array<keyof ThreeYearCostBreakdown> = [
+      "purchasePrice",
+      "insuranceEstimate",
+      "servicingEstimate",
+      "fuelOrChargingEstimate",
+      "registrationAndOtherCosts",
+      "totalThreeYearCost"
+    ];
+
+    return costKeys.reduce(
+      (accumulator, key) => {
+        accumulator[key] = getWinningCostIds(savedCars, key);
+        return accumulator;
+      },
+      {} as Record<keyof ThreeYearCostBreakdown, Set<string>>
+    );
+  }, [savedCars]);
+
+  const bestOverallChoice = useMemo(() => getBestOverallChoice(savedCars), [savedCars]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
@@ -120,6 +170,8 @@ export default function App() {
       ]);
 
       setResult(response);
+      setLastAnalysedRequest(payload);
+      setCompareMessage(null);
     } catch (submissionError) {
       setError(
         submissionError instanceof Error
@@ -129,6 +181,43 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function handleSaveToCompare() {
+    if (!result || !lastAnalysedRequest) {
+      return;
+    }
+
+    const candidate = createSavedCarAnalysis(lastAnalysedRequest, result);
+    const alreadySaved = savedCars.some(
+      (car) =>
+        car.title === candidate.title &&
+        car.analysis.estimatedListingPrice ===
+          candidate.analysis.estimatedListingPrice
+    );
+
+    if (alreadySaved) {
+      setCompareMessage("This car is already in your compare tray.");
+      return;
+    }
+
+    if (savedCars.length >= compareLimit) {
+      setCompareMessage("You can only compare up to 3 cars at once. Remove one to add another.");
+      return;
+    }
+
+    setSavedCars((current) => [...current, candidate]);
+    setCompareMessage(`Saved "${candidate.title}" to compare.`);
+  }
+
+  function handleRemoveSavedCar(id: string) {
+    setSavedCars((current) => current.filter((car) => car.id !== id));
+    setCompareMessage(null);
+  }
+
+  function handleLoadDemoCompareSet() {
+    setSavedCars(createDemoCompareCars());
+    setCompareMessage("Loaded a three-car demo compare set.");
   }
 
   return (
@@ -154,6 +243,13 @@ export default function App() {
               >
                 Try sample listing
               </button>
+              <button
+                className="ghost-button"
+                type="button"
+                onClick={handleLoadDemoCompareSet}
+              >
+                Load compare demo
+              </button>
               <span className="hero-note">
                 Demo-ready mock analysis, structured for real AI later.
               </span>
@@ -171,6 +267,15 @@ export default function App() {
             </div>
           </div>
         </section>
+
+        <CompareTray
+          cars={savedCars}
+          onRemove={handleRemoveSavedCar}
+          onLoadDemoSet={handleLoadDemoCompareSet}
+          compareMessage={compareMessage}
+          winningScoreIdsByCategory={winningScoreIdsByCategory}
+          winningCostIdsByKey={winningCostIdsByKey}
+        />
 
         <section className="content-grid">
           <form className="card form-card" onSubmit={handleSubmit}>
@@ -340,6 +445,18 @@ export default function App() {
                         <strong>Modelled locally</strong>
                       </div>
                     </div>
+                    <div className="result-actions">
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        onClick={handleSaveToCompare}
+                      >
+                        Save to Compare
+                      </button>
+                      <span className="compare-hint">
+                        {savedCars.length}/{compareLimit} cars saved
+                      </span>
+                    </div>
                   </div>
                 </article>
 
@@ -466,6 +583,54 @@ export default function App() {
             )}
           </section>
         </section>
+
+        {savedCars.length >= 2 ? (
+          <section className="compare-section">
+            <div className="card compare-summary-card">
+              <div className="compare-summary-copy">
+                <span className="eyebrow">Compare cars</span>
+                <h2>Side-by-side shortlist view</h2>
+                <p>
+                  The radar chart stacks all five score dimensions in one place,
+                  while the cost table below highlights the cheapest ownership
+                  path across your saved options.
+                </p>
+              </div>
+
+              {bestOverallChoice ? (
+                <div className="best-choice-panel">
+                  <span className="card-kicker">Best overall choice</span>
+                  <strong>{bestOverallChoice.title}</strong>
+                  <p>
+                    Highest blended recommendation based on sub-score average,
+                    lowest three-year ownership cost, and verdict confidence.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="compare-grid">
+              <article className="card compare-chart-card">
+                <div className="card-heading">
+                  <h3>Five-category radar view</h3>
+                  <span className="card-kicker">Higher scores win in each dimension</span>
+                </div>
+                <RadarScoreChart cars={savedCars} />
+              </article>
+
+              <article className="card compare-table-card">
+                <div className="card-heading">
+                  <h3>3-year cost breakdown</h3>
+                  <span className="card-kicker">Lower cost wins in green</span>
+                </div>
+                <CostBreakdownTable
+                  cars={savedCars}
+                  winningCostIdsByKey={winningCostIdsByKey}
+                />
+              </article>
+            </div>
+          </section>
+        ) : null}
       </main>
     </div>
   );

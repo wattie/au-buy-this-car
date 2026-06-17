@@ -25,6 +25,15 @@ dotnet run
 
 The API runs on `http://localhost:5052`.
 
+Provider configuration:
+
+- Default mock mode: leave `CarAnalysis:Provider` as `Mock`
+- OpenAI mode: set `CarAnalysis:Provider` to `OpenAI` and provide `OpenAI:ApiKey`
+- Environment variable equivalents:
+  - `CarAnalysis__Provider=OpenAI`
+  - `OpenAI__ApiKey=your_api_key`
+  - `OpenAI__Model=gpt-4.1-mini`
+
 ### Frontend
 
 Requirements:

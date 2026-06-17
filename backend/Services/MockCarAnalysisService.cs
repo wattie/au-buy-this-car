@@ -3,12 +3,10 @@ using ShouldIBuyThisCar.Api.Models;
 
 namespace ShouldIBuyThisCar.Api.Services;
 
-public sealed class CarAnalysisService
+public sealed class MockCarAnalysisService : ICarAnalysisService
 {
-    public AnalyseCarResponse Analyse(AnalyseCarRequest request)
+    public Task<AnalyseCarResponse> AnalyseAsync(AnalyseCarRequest request, CancellationToken cancellationToken = default)
     {
-        // TODO: Replace or augment this deterministic rules engine with a real OpenAI call.
-        // Keep the response contract stable so the frontend does not need to change.
         var normalizedInput = request.ListingInput.Trim().ToLowerInvariant();
         var listingPrice = ParsePrice(normalizedInput) ?? CreateSyntheticListingPrice(request.Budget, normalizedInput);
         var buyScore = 64;
@@ -153,7 +151,7 @@ public sealed class CarAnalysisService
 
         var scoreBreakdown = BuildScoreBreakdown(request, buyScore, listingPrice, fairPrice);
 
-        return new AnalyseCarResponse(
+        return Task.FromResult(new AnalyseCarResponse(
             BuyScore: buyScore,
             Verdict: verdict,
             EstimatedFairPrice: fairPrice,
@@ -170,7 +168,7 @@ public sealed class CarAnalysisService
             ScoreBreakdown: scoreBreakdown,
             SellerRedFlags: sellerRedFlags,
             NegotiationScript: BuildNegotiationScript(listingPrice, fairPrice, request.Budget)
-        );
+        ));
     }
 
     private static decimal? ParsePrice(string input)
@@ -307,3 +305,4 @@ public sealed class CarAnalysisService
         return $"You could say: \"I like the car and it fits what I need, but based on the price, service history, and the chance I'll need to spend on inspection or maintenance, I'd be more comfortable around {openingOffer:C0}. If the inspection is clean and we can get close to {target:C0}, I'd be happy to move quickly.\"";
     }
 }
+

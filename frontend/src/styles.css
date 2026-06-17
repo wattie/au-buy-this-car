@@ -147,6 +147,11 @@ button {
   align-items: start;
 }
 
+.compare-tray,
+.compare-section {
+  margin-bottom: 24px;
+}
+
 .card,
 .form-card {
   padding: 28px;
@@ -257,6 +262,11 @@ button {
   color: var(--danger);
 }
 
+.warning-message {
+  background: rgba(185, 129, 33, 0.14);
+  color: #8a6115;
+}
+
 .loading-panel {
   background: linear-gradient(145deg, rgba(223, 240, 232, 0.58), rgba(255, 250, 243, 0.9));
   border: 1px solid rgba(28, 111, 85, 0.1);
@@ -324,6 +334,130 @@ button {
 .results-column {
   display: grid;
   gap: 24px;
+}
+
+.compare-tray-header,
+.compare-summary-card {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.compare-tray-header h2,
+.compare-summary-copy h2 {
+  margin: 6px 0 10px;
+}
+
+.saved-car-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.saved-car-card {
+  padding: 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(23, 36, 30, 0.08);
+}
+
+.saved-car-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.saved-car-topline h3 {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  line-height: 1.3;
+}
+
+.saved-car-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.saved-car-score {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  font-weight: 700;
+}
+
+.remove-button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.saved-car-score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.saved-car-score-chip {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.saved-car-score-chip span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.saved-car-score-chip strong {
+  font-size: 1.15rem;
+}
+
+.saved-car-score-chip.winner,
+.winner-cell,
+.best-choice-panel,
+.winner-text {
+  color: var(--accent);
+}
+
+.saved-car-score-chip.winner {
+  background: rgba(216, 239, 228, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(28, 111, 85, 0.14);
+}
+
+.saved-car-cost-inline {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(23, 36, 30, 0.08);
+}
+
+.saved-car-cost-inline span {
+  color: var(--muted);
+}
+
+.compare-empty {
+  display: grid;
+  gap: 8px;
+  padding: 22px;
+  margin-top: 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.5);
+  text-align: center;
 }
 
 .score-card {
@@ -430,6 +564,18 @@ button {
 .score-metadata strong {
   display: block;
   margin-top: 8px;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.compare-hint {
+  color: var(--muted);
+  font-size: 0.95rem;
 }
 
 .results-grid {
@@ -556,6 +702,74 @@ button {
   text-align: center;
 }
 
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+}
+
+.best-choice-panel {
+  min-width: 280px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: rgba(216, 239, 228, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(28, 111, 85, 0.12);
+}
+
+.best-choice-panel strong {
+  display: block;
+  margin: 8px 0 6px;
+  font-size: 1.3rem;
+}
+
+.best-choice-panel p {
+  margin: 0;
+}
+
+.compare-chart-card,
+.compare-table-card {
+  min-height: 100%;
+}
+
+.radar-chart-shell {
+  width: 100%;
+  min-height: 360px;
+}
+
+.cost-table-wrap {
+  overflow-x: auto;
+}
+
+.cost-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+}
+
+.cost-table th,
+.cost-table td {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(23, 36, 30, 0.08);
+}
+
+.cost-table thead th {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.cost-table tbody th {
+  color: var(--ink);
+  width: 220px;
+}
+
+.winner-cell {
+  background: rgba(216, 239, 228, 0.5);
+  font-weight: 700;
+}
+
 @keyframes pulse {
   0%,
   100% {
@@ -573,12 +787,19 @@ button {
   .hero,
   .content-grid,
   .score-card,
-  .results-grid {
+  .results-grid,
+  .compare-grid,
+  .saved-car-grid {
     grid-template-columns: 1fr;
   }
 
   .script-card {
     grid-column: auto;
+  }
+
+  .compare-tray-header,
+  .compare-summary-card {
+    flex-direction: column;
   }
 
   .score-card {
@@ -620,5 +841,9 @@ button {
 
   .hero-note {
     max-width: none;
+  }
+
+  .saved-car-score-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }

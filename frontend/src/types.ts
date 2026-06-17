@@ -6,6 +6,12 @@ export type IntendedUse =
   | "enthusiast";
 
 export type RiskSeverity = "low" | "medium" | "high";
+export type AnalysisCategory =
+  | "Price"
+  | "Reliability"
+  | "Running costs"
+  | "Resale"
+  | "Suitability";
 
 export interface AnalyseCarRequest {
   listingInput: string;
@@ -42,4 +48,23 @@ export interface AnalyseCarResponse {
   scoreBreakdown: ScoreBreakdownItem[];
   sellerRedFlags: string[];
   negotiationScript: string;
+}
+
+export interface ThreeYearCostBreakdown {
+  purchasePrice: number;
+  insuranceEstimate: number;
+  servicingEstimate: number;
+  fuelOrChargingEstimate: number;
+  registrationAndOtherCosts: number;
+  totalThreeYearCost: number;
+}
+
+export interface SavedCarAnalysis {
+  id: string;
+  title: string;
+  analysis: AnalyseCarResponse;
+  request: AnalyseCarRequest;
+  costBreakdown: ThreeYearCostBreakdown;
+  averageSubScore: number;
+  verdictConfidenceScore: number;
 }
