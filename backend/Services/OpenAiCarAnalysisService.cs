@@ -103,16 +103,10 @@ public sealed class OpenAiCarAnalysisService : ICarAnalysisService
         using var document = JsonDocument.Parse(responseBody);
         var root = document.RootElement;
 
-        if (!root.TryGetProperty("output_text", out var outputTextElement))
-        {
-            _logger.LogWarning("OpenAI response was missing output_text. Falling back to mock analysis.");
-            return null;
-        }
-
-        var outputText = outputTextElement.GetString();
+        var outputText = TryGetTopLevelOutputText(root) ?? TryGetOutputMessageText(root);
         if (string.IsNullOrWhiteSpace(outputText))
         {
-            _logger.LogWarning("OpenAI response output_text was empty. Falling back to mock analysis.");
+            _logger.LogWarning("OpenAI response did not include readable text content. Falling back to mock analysis.");
             return null;
         }
 
@@ -132,6 +126,61 @@ public sealed class OpenAiCarAnalysisService : ICarAnalysisService
             _logger.LogWarning(exception, "OpenAI returned invalid JSON for car analysis. Falling back to mock analysis.");
             return null;
         }
+    }
+
+    private static string? TryGetTopLevelOutputText(JsonElement root)
+    {
+        if (!root.TryGetProperty("output_text", out var outputTextElement))
+        {
+            return null;
+        }
+
+        return outputTextElement.ValueKind == JsonValueKind.String
+            ? outputTextElement.GetString()
+            : null;
+    }
+
+    private string? TryGetOutputMessageText(JsonElement root)
+    {
+        if (!root.TryGetProperty("output", out var outputElement)
+            || outputElement.ValueKind != JsonValueKind.Array)
+        {
+            _logger.LogWarning("OpenAI response was missing both output_text and an output array.");
+            return null;
+        }
+
+        foreach (var outputItem in outputElement.EnumerateArray())
+        {
+            if (!outputItem.TryGetProperty("type", out var typeElement)
+                || !string.Equals(typeElement.GetString(), "message", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!outputItem.TryGetProperty("content", out var contentElement)
+                || contentElement.ValueKind != JsonValueKind.Array)
+            {
+                continue;
+            }
+
+            foreach (var contentItem in contentElement.EnumerateArray())
+            {
+                if (!contentItem.TryGetProperty("type", out var contentTypeElement)
+                    || !string.Equals(contentTypeElement.GetString(), "output_text", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (contentItem.TryGetProperty("text", out var textElement)
+                    && textElement.ValueKind == JsonValueKind.String)
+                {
+                    return textElement.GetString();
+                }
+            }
+        }
+
+        _logger.LogWarning("OpenAI response output array was present, but no output_text content item was found.");
+        return null;
     }
 
     private static bool IsValidAnalyseResponse(AnalyseCarResponse response)
@@ -279,4 +328,3 @@ Instructions:
         };
     }
 }
-
