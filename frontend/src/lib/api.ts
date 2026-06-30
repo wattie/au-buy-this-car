@@ -1,12 +1,9 @@
-import type { AnalyseCarRequest, AnalyseCarResponse } from "./types";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5052";
+import type { AnalyseCarRequest, AnalyseCarResponse } from "@/src/types";
 
 export async function analyseCar(
   payload: AnalyseCarRequest
 ): Promise<AnalyseCarResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/analyse-car`, {
+  const response = await fetch("/api/analyse-car", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -22,4 +19,3 @@ export async function analyseCar(
 
   return response.json() as Promise<AnalyseCarResponse>;
 }
-

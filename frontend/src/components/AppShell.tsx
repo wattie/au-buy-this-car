@@ -1,5 +1,7 @@
+"use client";
+
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { analyseCar } from "./api";
+import { analyseCar } from "@/src/lib/api";
 import {
   createDemoCompareCars,
   createSavedCarAnalysis,
@@ -7,10 +9,10 @@ import {
   getScoreCategoryOrder,
   getWinningCostIds,
   getWinningScoreIds
-} from "./compare";
-import { CompareTray } from "./components/CompareTray";
-import { CostBreakdownTable } from "./components/CostBreakdownTable";
-import { RadarScoreChart } from "./components/RadarScoreChart";
+} from "@/src/compare";
+import { CompareTray } from "@/src/components/CompareTray";
+import { CostBreakdownTable } from "@/src/components/CostBreakdownTable";
+import { RadarScoreChart } from "@/src/components/RadarScoreChart";
 import type {
   AnalyseCarRequest,
   AnalyseCarResponse,
@@ -19,7 +21,7 @@ import type {
   RiskSeverity,
   SavedCarAnalysis,
   ThreeYearCostBreakdown
-} from "./types";
+} from "@/src/types";
 
 const intendedUseOptions: IntendedUse[] = [
   "commuting",
@@ -83,7 +85,7 @@ function getRiskTone(severity: RiskSeverity) {
   }
 }
 
-export default function App() {
+export function AppShell() {
   const [formState, setFormState] = useState<AnalyseCarRequest>({
     listingInput: "",
     budget: 20000,
@@ -164,10 +166,7 @@ export default function App() {
         location: formState.location?.trim() || undefined
       };
 
-      const [response] = await Promise.all([
-        analyseCar(payload),
-        delay(minimumLoadingMs)
-      ]);
+      const [response] = await Promise.all([analyseCar(payload), delay(minimumLoadingMs)]);
 
       setResult(response);
       setLastAnalysedRequest(payload);
@@ -192,8 +191,7 @@ export default function App() {
     const alreadySaved = savedCars.some(
       (car) =>
         car.title === candidate.title &&
-        car.analysis.estimatedListingPrice ===
-          candidate.analysis.estimatedListingPrice
+        car.analysis.estimatedListingPrice === candidate.analysis.estimatedListingPrice
     );
 
     if (alreadySaved) {
@@ -281,7 +279,10 @@ export default function App() {
           <form className="card form-card" onSubmit={handleSubmit}>
             <div className="section-heading">
               <h2>Analyse a listing</h2>
-              <p>Paste a listing URL, listing text, or a mix of both.</p>
+              <p>
+                Paste a listing URL, listing text, or a mix of both. If you paste a
+                URL, we will try to fetch basic page details automatically.
+              </p>
             </div>
 
             <label className="field">
@@ -418,9 +419,7 @@ export default function App() {
 
                   <div className="score-summary">
                     <div className="summary-topline">
-                      <span
-                        className={`verdict-pill ${getVerdictTone(result.verdict)}`}
-                      >
+                      <span className={`verdict-pill ${getVerdictTone(result.verdict)}`}>
                         {result.verdict}
                       </span>
                       <span className="confidence-pill">
@@ -436,9 +435,7 @@ export default function App() {
                       </div>
                       <div>
                         <span className="muted-label">Listing price</span>
-                        <strong>
-                          {formatCurrency(result.estimatedListingPrice)}
-                        </strong>
+                        <strong>{formatCurrency(result.estimatedListingPrice)}</strong>
                       </div>
                       <div>
                         <span className="muted-label">Running costs</span>
@@ -493,9 +490,7 @@ export default function App() {
                     <div className="risk-list">
                       {result.keyRisks.map((risk) => (
                         <div className="risk-item" key={risk.label}>
-                          <span
-                            className={`risk-chip ${getRiskTone(risk.severity)}`}
-                          >
+                          <span className={`risk-chip ${getRiskTone(risk.severity)}`}>
                             {risk.severity}
                           </span>
                           <p>{risk.label}</p>

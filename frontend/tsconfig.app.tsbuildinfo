@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/api.ts","./src/compare.ts","./src/main.tsx","./src/types.ts","./src/vite-env.d.ts","./src/components/comparetray.tsx","./src/components/costbreakdowntable.tsx","./src/components/radarscorechart.tsx","./src/components/savedcarcard.tsx"],"version":"5.9.3"}

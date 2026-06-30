@@ -1,59 +1,61 @@
 # Should I Buy This Car?
 
-MVP demo app with:
+MVP demo app now packaged as a single `Next.js` project in `frontend/`.
 
-- `frontend/`: React + TypeScript single-page UI
-- `backend/`: .NET minimal API with mocked car-analysis logic
+What is inside:
 
-Both sides are intentionally simple and structured so a real AI integration can replace the mock backend analysis later.
+- `frontend/`: Next.js app router UI plus API routes
+- `backend/`: legacy .NET version kept for reference during the migration
+
+The app still supports:
+
+- mock analysis mode for demos
+- optional OpenAI-backed analysis
+- saved-car compare flows and three-year cost views
 
 ## Run locally
 
-### Backend
-
 Requirements:
 
-- .NET 8 SDK
-
-Commands:
-
-```bash
-cd backend
-dotnet restore
-dotnet run
-```
-
-The API runs on `http://localhost:5052`.
-
-Provider configuration:
-
-- Default mock mode: leave `CarAnalysis:Provider` as `Mock`
-- OpenAI mode: set `CarAnalysis:Provider` to `OpenAI` and provide `OpenAI:ApiKey`
-- Environment variable equivalents:
-  - `CarAnalysis__Provider=OpenAI`
-  - `OpenAI__ApiKey=your_api_key`
-  - `OpenAI__Model=gpt-4.1-mini`
-
-### Frontend
-
-Requirements:
-
-- Node.js
+- Node.js 18+
 - npm
 
 Commands:
 
 ```bash
 cd frontend
-cp .env.example .env
 npm install
 npm run dev
 ```
 
-The frontend runs on `http://localhost:5173`.
+The app runs on `http://localhost:3000`.
+
+## Configuration
+
+Default mock mode:
+
+- leave `CAR_ANALYSIS_PROVIDER` unset, or set it to `Mock`
+
+OpenAI mode:
+
+- set `CAR_ANALYSIS_PROVIDER=OpenAI`
+- set `OPENAI_API_KEY=your_api_key`
+- optionally set `OPENAI_MODEL=gpt-4.1-mini`
+- optionally set `OPENAI_BASE_URL=https://api.openai.com/v1/`
+
+For convenience, the migrated app also accepts the old .NET-style environment variable names:
+
+- `CarAnalysis__Provider`
+- `OpenAI__ApiKey`
+- `OpenAI__Model`
+- `OpenAI__BaseUrl`
+
+## API
+
+- `GET /api/health`
+- `POST /api/analyse-car`
 
 ## Notes
 
-- The MVP uses a mock backend rules engine rather than a live AI model.
-- `POST /api/analyse-car` is the main backend endpoint.
-- TODO markers are included where a real OpenAI integration can be added later.
+- The mock service remains the default path so the app is still easy to demo without external API setup.
+- The Next.js API route falls back to the mock service if the OpenAI call fails or returns invalid JSON.
